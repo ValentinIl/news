@@ -1,8 +1,7 @@
 $(document).ready(function() {
 	$('.news-form').submit(function(){
 		var category = $(this).find('.category-value').val();
-		var url =  'https://ajax.googleapis.com/ajax/services/feed/find?v=1.0';
-console.log(url);
+
 		if (category == '') {
 			$('.alert').html('Input category, please').addClass('alert-warning');
 			return false;
@@ -10,28 +9,41 @@ console.log(url);
 			$('.alert').html('').removeClass('alert-warning');
 		};
 
-		var data = {q: category};
 
-		$.get(url, data, function(response){
+		$.ajax({
+			url: 'https://ajax.googleapis.com/ajax/services/feed/find?v=1.0&key=AIzaSyCc1GAoC76sMaX8DqRleXbp7rXgXE2tiTQ&',
+			type: 'POST',
+			crossDomain: true,
+			dataType: 'jsonp',
+			data: {q: category},
+		  error: function(xhr, textStatus, errorThrown) {
+				console.log("error");
+	    },
+		  complete: function(xhr, textStatus) {
+				console.log("complete");
+		  },
+		  success: function(response, textStatus, xhr) {
+				console.log("success");
 
-			if (response.cod !== 200) {
-				$('.alert').html(response.message).addClass('alert-danger');
-				return false;
-			}
-			$('.alert').html('').removeClass('alert-danger');
-			header("Access-Control-Allow-Origin: http://localhost:9000");
+				if (response.responseStatus !== 200) {
+					$('.alert').html(response.message).addClass('alert-danger');
+					return false;
+				}
+				$('.alert').html('').removeClass('alert-danger');
 
-			console.log(response);
+				$('h2').html('Category: ' + category);
+				$('.news').html('');
 
-			$('.news h2').html(response.responseData.title );
-			$('.current-news').html(response.responseData.url );
-			console.log($('.news h2').html(123456 ));
-			console.log(response.responseData.title);
-			console.log($('.current-news').html('qwertyui'));
-			console.log(response.responseData.url);
-		});
+				for (var i = 0; i < response.responseData.entries.length; i++) {
+					var resplink = response.responseData.entries[i].link;
+					var resptitle = response.responseData.entries[i].title;
+					var respContent = response.responseData.entries[i].contentSnippet;
 
-
+					$('.news').append($('<a href="'+resplink+'"></a>').append($('<h3></h3>').html(resptitle)));
+					$('.news').append($('<p></p>').html(respContent));
+				}
+	    }
+		})
 		return false;
 	});
 
